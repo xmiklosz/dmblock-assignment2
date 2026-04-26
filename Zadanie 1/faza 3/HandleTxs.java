@@ -1,4 +1,6 @@
-// AI: Implementacia vytvorena s pomocou Claude AI (Anthropic) - Python rewrite (bonus 5 bodov).
+// Meno študenta: Zoltán Miklós
+// AI: Implementácia vytvorená s pomocou Claude AI (Anthropic) - kompletná implementácia
+// HandleTxs triedy pre Fázu 3 blockchainu.
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -7,10 +9,18 @@ public class HandleTxs {
 
     private UTXOPool utxoPool;
 
+    /**
+     * Vytvorí verejný ledger, ktorého aktuálny UTXOPool je {@code utxoPool}.
+     * Vytvorí bezpečnú kópiu utxoPool.
+     */
     public HandleTxs(UTXOPool utxoPool) {
         this.utxoPool = new UTXOPool(utxoPool);
     }
 
+    /**
+     * @return aktuálny UTXO pool.
+     * Ak nenájde žiadny aktuálny UTXO pool, tak vráti prázdny (nie nulový) objekt UTXOPool.
+     */
     public UTXOPool UTXOPoolGet() {
         if (utxoPool == null) {
             return new UTXOPool();
@@ -18,6 +28,14 @@ public class HandleTxs {
         return utxoPool;
     }
 
+    /**
+     * @return true ak sú splnené všetky podmienky platnosti transakcie.
+     * (1) všetky výstupy nárokované tx sú v aktuálnom UTXO pool
+     * (2) podpisy na každom vstupe tx sú platné
+     * (3) žiadne UTXO nie je nárokované viackrát
+     * (4) všetky výstupné hodnoty tx sú nezáporné
+     * (5) súčet vstupných hodnôt tx >= súčet výstupných hodnôt
+     */
     public boolean txIsValid(Transaction tx) {
         HashSet<UTXO> claimedUTXOs = new HashSet<UTXO>();
         double inputSum = 0;
@@ -60,7 +78,7 @@ public class HandleTxs {
             outputSum += output.value;
         }
 
-        // (5) súčet vstupných hodnôt tx je väčší alebo rovný súčtu jej výstupných hodnôt
+        // (5) súčet vstupných hodnôt tx >= súčet výstupných hodnôt
         if (inputSum < outputSum) {
             return false;
         }
@@ -68,11 +86,13 @@ public class HandleTxs {
         return true;
     }
 
+    /**
+     * Spracováva každú epochu prijímaním neusporiadaného radu navrhovaných transakcií.
+     * Používa iteratívny greedy prístup na spracovanie závislých transakcií.
+     */
     public Transaction[] handler(Transaction[] possibleTxs) {
         ArrayList<Transaction> acceptedTxs = new ArrayList<Transaction>();
 
-        // Iteratívny greedy prístup: opakovane prechádzame transakcie, kým sa nájdu nové platné.
-        // Toto umožňuje spracovať závislé transakcie v rámci jedného bloku.
         boolean changed = true;
         while (changed) {
             changed = false;
@@ -83,14 +103,14 @@ public class HandleTxs {
                 if (txIsValid(tx)) {
                     acceptedTxs.add(tx);
 
-                    // Odstráň spotrebované UTXO z poolu
+                    // Odstráň spotrebované UTXO
                     for (int j = 0; j < tx.numInputs(); j++) {
                         Transaction.Input input = tx.getInput(j);
                         UTXO utxo = new UTXO(input.prevTxHash, input.outputIndex);
                         utxoPool.removeUTXO(utxo);
                     }
 
-                    // Pridaj nové UTXO z výstupov tejto transakcie do poolu
+                    // Pridaj nové UTXO
                     byte[] txHash = tx.getHash();
                     for (int j = 0; j < tx.numOutputs(); j++) {
                         UTXO utxo = new UTXO(txHash, j);

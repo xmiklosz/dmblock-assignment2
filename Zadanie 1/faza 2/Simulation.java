@@ -1,134 +1,239 @@
+// AI: Unit testy vytvorené s pomocou Claude AI (Anthropic) pre TrustedNode (Fáza 2).
 // Príklad simulácie. Tento test spúšťa uzly na náhodnom grafe.
 // Na konci vypíše ID transakcií, na ktorých bol podľa uzlov
 // dosiahnutý konsenzus. Túto simuláciu môžete použiť na
-// otestovanie svojich uzlov. Budete chcieť vyskúšať vytvoriť nejaké podvodné uzly a
-// zmiešať ich v sieti na úplné otestovanie.
+// otestovanie svojich uzlov.
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.HashMap;
 
+/**
+ * Simulácia + Unit testy pre TrustedNode (Fáza 2).
+ *
+ * Test 1: niekoľko testov s rôznymi parametrami: numNodes, p_graph, p_malicious,
+ *         p_txDistribution, numRounds
+ * Test 2: testuje konsenzus medzi uzlami s rôznymi parametrami a čas koľko trvá
+ *         dosiahnuť konsenzus
+ *
+ * Spustenie s argumentmi: java Simulation p_graph p_byzantine p_txDistribution numRounds
+ * Spustenie všetkých testov: java Simulation
+ */
 public class Simulation {
 
+   private static int passed = 0;
+   private static int failed = 0;
+
    public static void main(String[] args) {
-
-      // Sú štyri požadované argumenty v príkazovom riadku: p_graph (.1, .2, .3),
-      // p_byzantine (.15, .30, .45), p_txDistribution (.01, .05, .10),
-      // a numRounds (10, 20). Mali by ste sa pokúsiť otestovať svoj TrustedNode
-      // kód pre všetky 3x3x3x2 = 54 kombinácií.
-
-      int numNodes = 100;
-      double p_graph = Double.parseDouble(args[0]); // parameter pre náhodný graf: pravdepodobnosť existencie hrany
-      double p_byzantine = Double.parseDouble(args[1]); // pravdepodobnosť, že uzol bude nastavený ako byzantský
-      double p_txDistribution = Double.parseDouble(args[2]); // pravdepodobnosť priradenia počiatočnej transakcie ku
-                                                             // každému uzlu
-      int numRounds = Integer.parseInt(args[3]); // počet simulačných kôl, pre ktoré budú vaše uzly bežať
-
-      // vyberte, ktoré uzly sú byzantské a ktorým dôverujete
-      Node[] nodes = new Node[numNodes];
-      for (int i = 0; i < numNodes; i++) {
-         if (Math.random() < p_byzantine)
-            // Keď ste pripravení vyskúšať testovanie s byzantskými uzlami, nahraďte
-            // inštanciu uvedenú nižšie s inštanciou byzantského uzla
-            nodes[i] = new ByzantineNode(p_graph, p_byzantine, p_txDistribution, numRounds);
-         else
-            nodes[i] = new TrustedNode(p_graph, p_byzantine, p_txDistribution, numRounds);
+      if (args.length == 4) {
+         runWithArgs(args);
+      } else {
+         runAllTests();
       }
+   }
 
-      // inicializovať náhodné sledovanie grafu
-      boolean[][] followees = new boolean[numNodes][numNodes]; // followees[i][j] je true ak i sleduje j
+   private static void runWithArgs(String[] args) {
+      int numNodes = 100;
+      double p_graph = Double.parseDouble(args[0]);
+      double p_byzantine = Double.parseDouble(args[1]);
+      double p_txDistribution = Double.parseDouble(args[2]);
+      int numRounds = Integer.parseInt(args[3]);
+
+      boolean consensus = runSimulation(numNodes, p_graph, p_byzantine, p_txDistribution, numRounds, new Random());
+
+      if (consensus) {
+         System.out.println("PASS - konsenzus dosiahnuty (" + p_graph + ", " + p_byzantine + ", " + p_txDistribution + ", " + numRounds + ")");
+      } else {
+         System.out.println("FAIL - konsenzus nedosiahnuty (" + p_graph + ", " + p_byzantine + ", " + p_txDistribution + ", " + numRounds + ")");
+      }
+   }
+
+   private static void runAllTests() {
+      System.out.println("TrustedNode Unit Testy (Faza 2)");
+      System.out.println("================================");
+
+      System.out.println("\nTest 1: rozne parametre (numNodes, p_graph, p_malicious, p_txDistribution, numRounds)");
+      check("1a: p_graph=0.1 p_malicious=0.45 p_tx=0.01 rounds=10", runSimulation(100, 0.1, 0.45, 0.01, 10, new Random(42)));
+      check("1b: p_graph=0.1 p_malicious=0.45 p_tx=0.01 rounds=20", runSimulation(100, 0.1, 0.45, 0.01, 20, new Random(42)));
+
+      System.out.println("\nTest 2: konsenzus medzi uzlami + cas dosiahnutia konsenzu");
+      long t1 = System.currentTimeMillis();
+      boolean r2a = runSimulation(100, 0.2, 0.45, 0.01, 10, new Random(42));
+      long time2a = System.currentTimeMillis() - t1;
+
+      long t2 = System.currentTimeMillis();
+      boolean r2b = runSimulation(100, 0.3, 0.45, 0.01, 10, new Random(42));
+      long time2b = System.currentTimeMillis() - t2;
+
+      check("2a: p_graph=0.2 p_malicious=0.45 p_tx=0.01 rounds=10 (" + time2a + "ms)", r2a);
+      check("2b: p_graph=0.3 p_malicious=0.45 p_tx=0.01 rounds=10 (" + time2b + "ms)", r2b);
+
+      System.out.println("\n================================");
+      System.out.println("Vysledok: " + passed + "/" + (passed + failed) + " testov uspesnych");
+   }
+
+   private static void check(String name, boolean condition) {
+      if (condition) {
+         System.out.println("  PASS: " + name);
+         passed++;
+      } else {
+         System.out.println("  FAIL: " + name);
+         failed++;
+      }
+   }
+
+   /**
+    * Spusti simulaciu a vrati true ak bol dosiahnuty konsenzus medzi trusted uzlami.
+    */
+   private static boolean runSimulation(int numNodes, double p_graph, double p_byzantine,
+                                        double p_txDistribution, int numRounds, Random random) {
+
+      int numTx = 500;
+
+      // Vytvor uzly
+      Node[] nodes = new Node[numNodes];
+      boolean[] isByzantine = new boolean[numNodes];
       for (int i = 0; i < numNodes; i++) {
-         for (int j = 0; j < numNodes; j++) {
-            if (i == j)
-               continue;
-            if (Math.random() < p_graph) { // p_graph je .1, .2, or .3
-               followees[i][j] = true;
-            }
+         if (random.nextDouble() < p_byzantine) {
+            nodes[i] = new ByzantineNode(p_graph, p_byzantine, p_txDistribution, numRounds);
+            isByzantine[i] = true;
+         } else {
+            nodes[i] = new TrustedNode(p_graph, p_byzantine, p_txDistribution, numRounds);
          }
       }
 
-      // upozorni všetky uzly o ich nasledovníkoch
+      // Inicializuj graf
+      boolean[][] followees = new boolean[numNodes][numNodes];
+      for (int i = 0; i < numNodes; i++) {
+         for (int j = 0; j < numNodes; j++) {
+            if (i == j) continue;
+            if (random.nextDouble() < p_graph)
+               followees[i][j] = true;
+         }
+      }
+
       for (int i = 0; i < numNodes; i++)
          nodes[i].followeesSet(followees[i]);
 
-      // inicializuj set 500 platných transakcií s náhodnými id
-      int numTx = 500;
+      // Vytvor transakcie
       HashSet<Integer> validTxIds = new HashSet<Integer>();
-      Random random = new Random();
-      for (int i = 0; i < numTx; i++) {
-         int r = random.nextInt();
-         validTxIds.add(r);
-      }
+      for (int i = 0; i < numTx; i++)
+         validTxIds.add(random.nextInt());
 
-      // distribuuje 500 transakcií do všetkých uzlov a inicializuje ich
-      // počiatočný stav transakcií, ktoré každý uzol počul. Distribúcia
-      // je náhodná s pravdepodobnosťou p_txDistribution pre každý pár
-      // Transkacia-Uzol.
+      // Distribuuj transakcie
       for (int i = 0; i < numNodes; i++) {
          HashSet<Transaction> pendingTransactions = new HashSet<Transaction>();
          for (Integer txID : validTxIds) {
-            if (Math.random() < p_txDistribution) // p_txDistribution je .01, .05, or .10.
+            if (random.nextDouble() < p_txDistribution)
                pendingTransactions.add(new Transaction(txID));
          }
          nodes[i].pendingTransactionSet(pendingTransactions);
       }
 
-      // Simuluj numRounds-krát
-      for (int round = 0; round < numRounds; round++) { // numRounds je buď 10, alebo 20
-
-         // zhromaždiť všetky návrhy do mapy. Kľúčom je index uzla prijímajúceho
-         // návrhy. Hodnota je ArrayList obsahujúci polia celých čísel 1x2. Prvým
-         // prvkom každého poľa je ID navrhovanej transakcie a druhý
-         // element je indexové číslo uzla navrhujúceho transakciu.
+      // Simuluj
+      for (int round = 0; round < numRounds; round++) {
          HashMap<Integer, ArrayList<Integer[]>> allProposals = new HashMap<>();
 
          for (int i = 0; i < numNodes; i++) {
             Set<Transaction> proposals = nodes[i].followersSend();
             for (Transaction tx : proposals) {
-               if (!validTxIds.contains(tx.id))
-                  continue; // skontroluje, aby každá tx bola skutočne platná
+               if (!validTxIds.contains(tx.id)) continue;
 
                for (int j = 0; j < numNodes; j++) {
-                  if (!followees[j][i])
-                     continue; // na tx záleží iba ak j nasleduje i
+                  if (!followees[j][i]) continue;
 
-                  if(allProposals.containsKey(j)) {
-                     Integer[] candidate = new Integer[2]; 
-                     candidate[0] = tx.id;
-                     candidate[1] = i; 
-                     allProposals.get(j).add(candidate);
+                  if (allProposals.containsKey(j)) {
+                     allProposals.get(j).add(new Integer[]{tx.id, i});
                   } else {
-                     ArrayList<Integer[]> candidates = new ArrayList<Integer[]>();
-                     Integer[] candidate = new Integer[2]; 
-                     candidate[0] = tx.id; 
-                     candidate[1] = i;   
-                     candidates.add(candidate);
+                     ArrayList<Integer[]> candidates = new ArrayList<>();
+                     candidates.add(new Integer[]{tx.id, i});
                      allProposals.put(j, candidates);
                   }
                }
-
             }
          }
 
-         // Distribuuje návrhy k ich zamýšľaným príjemcom ako kandidátom
          for (int i = 0; i < numNodes; i++) {
             if (allProposals.containsKey(i))
                nodes[i].followeesReceive(allProposals.get(i));
          }
       }
 
-      // vypíš výsledky
-      for (int i = 0; i < numNodes; i++) {
-         Set<Transaction> transactions = nodes[i].followersSend();
-         System.out.println("Transaction ids that Node " + i + " believes consensus on:");
-         for (Transaction tx : transactions)
-            System.out.println(tx.id);
-         System.out.println();
-         System.out.println();
+      // Vyhodnotenie zhody medzi dobrymi uzlami
+      System.out.println("-------------------------------------------");
+      System.out.println("        VYHODNOTENIE ZHODY UZLOV");
+      System.out.println("-------------------------------------------");
+
+      ArrayList<Integer> goodNodes = new ArrayList<>();
+      HashMap<Integer, Set<Transaction>> resultsMap = new HashMap<>();
+
+      for (int idx = 0; idx < numNodes; idx++) {
+         if (!isByzantine[idx]) {
+            goodNodes.add(idx);
+            resultsMap.put(idx, nodes[idx].followersSend());
+         }
       }
 
-   }
+      int numByzantine = numNodes - goodNodes.size();
+      System.out.println("Pocet uzlov spolu : " + numNodes);
+      System.out.println("Doverhodne uzly   : " + goodNodes.size());
+      System.out.println("Podvodne uzly     : " + numByzantine);
+      System.out.println();
 
+      if (goodNodes.isEmpty()) {
+         System.out.println("Ziadne doverhodne uzly v sieti!");
+         System.out.println("-------------------------------------------");
+         return false;
+      }
+
+      int firstGood = goodNodes.get(0);
+      Set<Transaction> baseline = resultsMap.get(firstGood);
+      int disagreements = 0;
+
+      for (int k = 1; k < goodNodes.size(); k++) {
+         int nodeId = goodNodes.get(k);
+         Set<Transaction> nodeOut = resultsMap.get(nodeId);
+         if (!baseline.equals(nodeOut)) {
+            disagreements++;
+         }
+      }
+
+      if (disagreements == 0) {
+         System.out.println("VYSLEDOK: USPECH - vsetky doverhodne uzly sa zhoduju!");
+         System.out.println("Prijate transakcie: " + baseline.size() + " z " + validTxIds.size());
+      } else {
+         System.out.println("VYSLEDOK: NEUSPECH - uzly sa nezhoduju.");
+         System.out.println("Pocet nezhod: " + disagreements + " z " + goodNodes.size());
+         System.out.println();
+
+         for (int k = 1; k < goodNodes.size(); k++) {
+            int nid = goodNodes.get(k);
+            Set<Transaction> nout = resultsMap.get(nid);
+            if (!nout.equals(baseline)) {
+               HashSet<Transaction> chybajuce = new HashSet<>(baseline);
+               chybajuce.removeAll(nout);
+
+               HashSet<Transaction> navyse = new HashSet<>(nout);
+               navyse.removeAll(baseline);
+
+               System.out.println("  Uzol " + nid + " vs Uzol " + firstGood + ":");
+               System.out.println("    Chybajuce tx : " + chybajuce.size());
+               System.out.println("    Navyse tx    : " + navyse.size());
+            }
+         }
+
+         Set<Transaction> spolocne = new HashSet<>(baseline);
+         for (Set<Transaction> vo : resultsMap.values()) {
+            spolocne.retainAll(vo);
+         }
+         System.out.println();
+         System.out.println("Tx na ktorych sa zhodli vsetci: " + spolocne.size() + " z " + validTxIds.size());
+      }
+
+      System.out.println("-------------------------------------------");
+      return disagreements == 0 && baseline.size() > 0;
+   }
 }

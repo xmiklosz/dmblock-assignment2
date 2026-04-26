@@ -1,13 +1,13 @@
-// AI: Implementacia vytvorena s pomocou Claude AI (Anthropic) - Python rewrite (bonus 5 bodov).
-
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 
-public class HandleTxs {
+public class MaxFeeHandleTxs {
 
     private UTXOPool utxoPool;
 
-    public HandleTxs(UTXOPool utxoPool) {
+    public MaxFeeHandleTxs(UTXOPool utxoPool) {
         this.utxoPool = new UTXOPool(utxoPool);
     }
 
@@ -27,14 +27,12 @@ public class HandleTxs {
             Transaction.Input input = tx.getInput(i);
             UTXO utxo = new UTXO(input.prevTxHash, input.outputIndex);
 
-            // (1) všetky výstupy nárokované tx sú v aktuálnom UTXO pool
             if (!utxoPool.contains(utxo)) {
                 return false;
             }
 
             Transaction.Output correspondingOutput = utxoPool.getTxOutput(utxo);
 
-            // (2) podpisy na každom vstupe tx sú platné
             RSAKey publicKey = correspondingOutput.address;
             byte[] message = tx.getDataToSign(i);
             byte[] signature = input.signature;
@@ -42,7 +40,6 @@ public class HandleTxs {
                 return false;
             }
 
-            // (3) žiadne UTXO nie je nárokované viackrát
             if (claimedUTXOs.contains(utxo)) {
                 return false;
             }
@@ -51,7 +48,6 @@ public class HandleTxs {
             inputSum += correspondingOutput.value;
         }
 
-        // (4) všetky výstupné hodnoty tx sú nezáporné
         for (int i = 0; i < tx.numOutputs(); i++) {
             Transaction.Output output = tx.getOutput(i);
             if (output.value < 0) {
@@ -60,7 +56,6 @@ public class HandleTxs {
             outputSum += output.value;
         }
 
-        // (5) súčet vstupných hodnôt tx je väčší alebo rovný súčtu jej výstupných hodnôt
         if (inputSum < outputSum) {
             return false;
         }
@@ -68,41 +63,94 @@ public class HandleTxs {
         return true;
     }
 
+    private double calculateFee(Transaction tx) {
+        double inputSum = 0;
+        double outputSum = 0;
+
+        for (int i = 0; i < tx.numInputs(); i++) {
+            Transaction.Input input = tx.getInput(i);
+            UTXO utxo = new UTXO(input.prevTxHash, input.outputIndex);
+            if (!utxoPool.contains(utxo)) {
+                return -1;
+            }
+            Transaction.Output correspondingOutput = utxoPool.getTxOutput(utxo);
+            inputSum += correspondingOutput.value;
+        }
+
+        for (int i = 0; i < tx.numOutputs(); i++) {
+            outputSum += tx.getOutput(i).value;
+        }
+
+        return inputSum - outputSum;
+    }
+
     public Transaction[] handler(Transaction[] possibleTxs) {
         ArrayList<Transaction> acceptedTxs = new ArrayList<Transaction>();
 
-        // Iteratívny greedy prístup: opakovane prechádzame transakcie, kým sa nájdu nové platné.
-        // Toto umožňuje spracovať závislé transakcie v rámci jedného bloku.
+        ArrayList<Transaction> candidates = new ArrayList<Transaction>();
+        for (Transaction tx : possibleTxs) {
+            if (tx != null) {
+                candidates.add(tx);
+            }
+        }
+
+        // Greedy-by-fee: v každom kole zoradíme podľa poplatku zostupne
+        // a vyberieme najlepšiu platnú transakciu. Opakujeme.
         boolean changed = true;
         while (changed) {
             changed = false;
-            for (int i = 0; i < possibleTxs.length; i++) {
-                Transaction tx = possibleTxs[i];
-                if (tx == null) continue;
+
+            ArrayList<TransactionWithFee> validWithFees = new ArrayList<TransactionWithFee>();
+            for (Transaction tx : candidates) {
+                if (txIsValid(tx)) {
+                    double fee = calculateFee(tx);
+                    if (fee >= 0) {
+                        validWithFees.add(new TransactionWithFee(tx, fee));
+                    }
+                }
+            }
+
+            Collections.sort(validWithFees, new Comparator<TransactionWithFee>() {
+                public int compare(TransactionWithFee a, TransactionWithFee b) {
+                    return Double.compare(b.fee, a.fee);
+                }
+            });
+
+            for (TransactionWithFee twf : validWithFees) {
+                Transaction tx = twf.tx;
 
                 if (txIsValid(tx)) {
                     acceptedTxs.add(tx);
+                    candidates.remove(tx);
 
-                    // Odstráň spotrebované UTXO z poolu
                     for (int j = 0; j < tx.numInputs(); j++) {
                         Transaction.Input input = tx.getInput(j);
                         UTXO utxo = new UTXO(input.prevTxHash, input.outputIndex);
                         utxoPool.removeUTXO(utxo);
                     }
 
-                    // Pridaj nové UTXO z výstupov tejto transakcie do poolu
                     byte[] txHash = tx.getHash();
                     for (int j = 0; j < tx.numOutputs(); j++) {
                         UTXO utxo = new UTXO(txHash, j);
                         utxoPool.addUTXO(utxo, tx.getOutput(j));
                     }
 
-                    possibleTxs[i] = null;
                     changed = true;
+                    break; // Reštartujeme iteráciu s aktualizovaným poolom
                 }
             }
         }
 
         return acceptedTxs.toArray(new Transaction[acceptedTxs.size()]);
+    }
+
+    private class TransactionWithFee {
+        Transaction tx;
+        double fee;
+
+        TransactionWithFee(Transaction tx, double fee) {
+            this.tx = tx;
+            this.fee = fee;
+        }
     }
 }
