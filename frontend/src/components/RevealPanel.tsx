@@ -29,11 +29,11 @@ export default function RevealPanel({
   }, [wallet.account, marketId]);
 
   async function reveal(outcome: Outcome, salt: string) {
-    if (!wallet.writeContract) return toast.error("Connect wallet");
+    if (!wallet.marketWrite) return toast.error("Connect wallet");
     setBusy(true);
     const t = toast.loading("Revealing…");
     try {
-      const tx = await wallet.writeContract.revealResolution(marketId, outcome, salt);
+      const tx = await wallet.marketWrite.revealResolution(marketId, outcome, salt);
       toast.loading("Waiting for confirmation…", { id: t });
       await tx.wait();
       toast.success(`Revealed as ${outcomeLabel(outcome)}`, { id: t });

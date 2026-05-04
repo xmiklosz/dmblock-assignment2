@@ -24,14 +24,14 @@ export default function CommitPanel({
   const [busy, setBusy] = useState(false);
 
   async function submit() {
-    if (!wallet.writeContract || !wallet.account) return toast.error("Connect wallet");
+    if (!wallet.marketWrite || !wallet.account) return toast.error("Connect wallet");
     const salt = randomSalt();
     const hash = commitmentHash(outcome, salt);
 
     setBusy(true);
     const t = toast.loading("Submitting commitment…");
     try {
-      const tx = await wallet.writeContract.commitResolution(marketId, hash, {
+      const tx = await wallet.marketWrite.commitResolution(marketId, hash, {
         value: COLLATERAL,
       });
       toast.loading("Waiting for confirmation…", { id: t });
