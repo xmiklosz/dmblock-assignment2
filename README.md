@@ -10,13 +10,13 @@
 
 OptiMarket is a decentralized prediction market with two resolution modes and full Chainlink Automation support:
 
-1. **Chainlink Auto-resolve** — price-based markets (e.g. "Will ETH > $3000?") resolve themselves by reading a Chainlink AggregatorV3 feed after the trading deadline. No oracle vote needed, no human intervention, fully trustless. Chainlink Automation keepers call `performUpkeep` automatically — the contract resolves itself with zero human in the loop.
+1. **Chainlink Auto-resolve** — price-based markets (e.g. "Will ETH > $3000?") resolve themselves by reading a Chainlink AggregatorV3 feed after the trading deadline. Chainlink Automation keepers call `performUpkeep` automatically — the contract resolves itself with **zero human in the loop**.
 
 2. **Optimistic Oracle** — subjective markets use a two-layer dispute system: anyone can propose an outcome by posting a bond; if disputed, a permissionless staked oracle network votes by stake weight to decide the final outcome.
 
 ### What makes this original
 
-- **Self-executing markets** — Chainlink Automation (`checkUpkeep` / `performUpkeep`) means price markets resolve automatically when the trading deadline passes. No manual `autoResolve()` call needed.
+- **Self-executing markets** — Chainlink Automation (`checkUpkeep` / `performUpkeep`) means price markets resolve automatically when the trading deadline passes. No manual call needed.
 - **Two resolution paths in one contract** — Chainlink auto-resolve for price markets and optimistic + oracle vote for subjective markets, without any centralized oracle service.
 - **Staked oracle network** — anyone can register as an oracle by staking ≥ 0.05 ETH. Losing minority oracles get slashed and auto-deactivated.
 - **IPFS metadata** — markets attach rich off-chain metadata (description, image, sources) via IPFS CID stored on-chain.
@@ -57,12 +57,12 @@ OptiMarket is a decentralized prediction market with two resolution modes and fu
 │  - Auto-deactivate   │   └───────────────────────────────┘
 └──────────────────────┘
           ▲
-          │ registerUpkeep
-┌─────────────────────┐
-│ Chainlink Automation│
-│ (automation.chain   │
-│  .link)             │
-└─────────────────────┘
+          │ performUpkeep
+┌──────────────────────────────────────────────────────────┐
+│  Chainlink Automation (Active)                           │
+│  https://automation.chain.link/sepolia/                  │
+│  27133139467416255542457859975965821568883064832525...   │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ### Market Lifecycle — Manual (Optimistic Oracle)
@@ -79,7 +79,7 @@ OptiMarket is a decentralized prediction market with two resolution modes and fu
 
 1. **Create** — creator sets Chainlink feed + threshold + trading deadline
 2. **Trade** — users stake ETH on YES or NO
-3. **Auto-resolve** — Chainlink Automation keeper calls `performUpkeep` after deadline; contract reads `latestRoundData()`, checks staleness, resolves in one tx
+3. **Auto-resolve** — Chainlink Automation keeper calls `performUpkeep` after deadline automatically; contract reads `latestRoundData()`, checks staleness, resolves in one tx
 4. **Claim** — winners claim
 
 ---
@@ -93,6 +93,7 @@ OptiMarket is a decentralized prediction market with two resolution modes and fu
 | OracleRegistry | `0xb660C020dB886127655Cd59a562da36D47F42f1C` |
 | PredictionMarket (Etherscan) | https://sepolia.etherscan.io/address/0x1292954Db6A3Bd56C90547b5d285Bdc6E31F1bF7#code |
 | OracleRegistry (Etherscan) | https://sepolia.etherscan.io/address/0xb660C020dB886127655Cd59a562da36D47F42f1C#code |
+| Chainlink Automation Upkeep | https://automation.chain.link/sepolia/27133139467416255542457859975965821568883064832525125277568610727438948193807 |
 | Frontend | https://dmblock-assignment2.vercel.app |
 | GitHub | https://github.com/xmiklosz/dmblock-assignment2 |
 
@@ -198,7 +199,7 @@ All generated code was reviewed, understood, and tested. During the presentation
 ## Known Limitations
 
 - **Oracle collusion** — a majority of staked oracles could collude; a larger oracle set mitigates this
-- **Chainlink Automation registration** — the upkeep must be registered manually at automation.chain.link; this step is not automated in the deploy script
+- **Chainlink Automation funding** — the upkeep must be manually topped up with LINK when balance runs low
 - **No frontend error boundaries** — some MetaMask rejection edge cases don't surface clean errors
 - **Fixed bond amounts** — bond sizes are hardcoded; dynamic sizing based on market volume would be more robust
 
@@ -214,4 +215,4 @@ All generated code was reviewed, understood, and tested. During the presentation
 
 ## Conclusion
 
-OptiMarket combines trustless Chainlink auto-resolution, decentralized optimistic oracle arbitration, and Chainlink Automation into a single prediction market contract. Price markets run end-to-end with zero human intervention; subjective markets have a full dispute + oracle vote layer. The dual-path design with self-executing automation is the core original contribution of this project.
+OptiMarket combines trustless Chainlink auto-resolution, decentralized optimistic oracle arbitration, and live Chainlink Automation into a single prediction market contract. Price markets run end-to-end with zero human intervention — the Automation upkeep is live and active on Sepolia. Subjective markets have a full dispute + oracle vote layer. The dual-path design with self-executing automation is the core original contribution of this project.
