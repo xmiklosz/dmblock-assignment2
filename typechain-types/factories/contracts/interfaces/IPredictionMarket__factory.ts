@@ -17,6 +17,19 @@ const _abi = [
         type: "uint256",
       },
     ],
+    name: "autoResolve",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "marketId",
+        type: "uint256",
+      },
+    ],
     name: "claimDisputerBond",
     outputs: [],
     stateMutability: "nonpayable",
@@ -69,6 +82,11 @@ const _abi = [
         type: "string",
       },
       {
+        internalType: "string",
+        name: "metadataCID",
+        type: "string",
+      },
+      {
         internalType: "uint256",
         name: "tradingDeadline",
         type: "uint256",
@@ -80,6 +98,50 @@ const _abi = [
       },
     ],
     name: "createMarket",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "question",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "metadataCID",
+        type: "string",
+      },
+      {
+        internalType: "uint256",
+        name: "tradingDeadline",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "proposalDeadline",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "priceFeed",
+        type: "address",
+      },
+      {
+        internalType: "int256",
+        name: "priceThreshold",
+        type: "int256",
+      },
+    ],
+    name: "createPriceMarket",
     outputs: [
       {
         internalType: "uint256",

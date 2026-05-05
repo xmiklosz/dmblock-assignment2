@@ -3,5 +3,7 @@
 /* eslint-disable */
 import type * as interfaces from "./interfaces";
 export type { interfaces };
+import type * as test from "./test";
+export type { test };
 export type { OracleRegistry } from "./OracleRegistry";
 export type { PredictionMarket } from "./PredictionMarket";

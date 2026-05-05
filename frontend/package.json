@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview --port 4173",
-    "lint": "tsc --noEmit",
-    "postinstall": "chmod +x node_modules/.bin/tsc node_modules/.bin/vite || true"
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "ethers": "^6.11.1",

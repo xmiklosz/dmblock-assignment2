@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\Users\\miklo\\PycharmProjects\\PythonProject5\\BlockChain\\dmblock\\contracts\\interfaces\\IPredictionMarket.sol": {
-      "lastModificationDate": 1777930900003,
-      "contentHash": "6a1d2192a5777829a841097f60f97ae4",
+      "lastModificationDate": 1777966599555,
+      "contentHash": "8a3d92653f6bfbf4597f0bad0f495cb2",
       "sourceName": "contracts/interfaces/IPredictionMarket.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -39,8 +39,8 @@
       ]
     },
     "C:\\Users\\miklo\\PycharmProjects\\PythonProject5\\BlockChain\\dmblock\\contracts\\PredictionMarket.sol": {
-      "lastModificationDate": 1777930900001,
-      "contentHash": "a07f2c72f92a79bbd5c6a686c61bd10c",
+      "lastModificationDate": 1777966599554,
+      "contentHash": "de61e3d8a549481a47703a98bab98df6",
       "sourceName": "contracts/PredictionMarket.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -69,7 +69,8 @@
       },
       "imports": [
         "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
-        "./OracleRegistry.sol"
+        "./OracleRegistry.sol",
+        "./interfaces/AggregatorV3Interface.sol"
       ],
       "versionPragmas": [
         "^0.8.24"
@@ -189,6 +190,82 @@
       ],
       "artifacts": [
         "OracleRegistry"
+      ]
+    },
+    "C:\\Users\\miklo\\PycharmProjects\\PythonProject5\\BlockChain\\dmblock\\contracts\\interfaces\\AggregatorV3Interface.sol": {
+      "lastModificationDate": 1777966599555,
+      "contentHash": "2da239cbb2ddf40319304dc168d6f6bf",
+      "sourceName": "contracts/interfaces/AggregatorV3Interface.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "AggregatorV3Interface"
+      ]
+    },
+    "C:\\Users\\miklo\\PycharmProjects\\PythonProject5\\BlockChain\\dmblock\\contracts\\test\\MockAggregatorV3.sol": {
+      "lastModificationDate": 1777966599558,
+      "contentHash": "368a13e441400c1c5671c91379e8fe89",
+      "sourceName": "contracts/test/MockAggregatorV3.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../interfaces/AggregatorV3Interface.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "MockAggregatorV3"
       ]
     }
   }

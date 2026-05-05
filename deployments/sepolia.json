@@ -1,7 +1,7 @@
 {
-  "registry": "0x8A999a691474f9dF6e1C25883116869852d2ED08",
-  "market": "0x09AE462210c42066E3eBc016BE064594Ecc48B61",
+  "registry": "0x3Ad194b9dADF0fD6459A4849CB8B02A5985528bB",
+  "market": "0x3e33743DD0eAcda1526b6674beC2EDA53e0059B0",
   "network": "sepolia",
   "chainId": 11155111,
-  "deployedAt": "2026-05-04T21:43:49.998Z"
+  "deployedAt": "2026-05-05T07:38:37.745Z"
 }

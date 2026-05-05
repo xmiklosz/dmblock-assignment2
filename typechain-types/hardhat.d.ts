@@ -18,6 +18,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReentrancyGuard__factory>;
     getContractFactory(
+      name: "AggregatorV3Interface",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.AggregatorV3Interface__factory>;
+    getContractFactory(
       name: "IPredictionMarket",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IPredictionMarket__factory>;
@@ -29,12 +33,21 @@ declare module "hardhat/types/runtime" {
       name: "PredictionMarket",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.PredictionMarket__factory>;
+    getContractFactory(
+      name: "MockAggregatorV3",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MockAggregatorV3__factory>;
 
     getContractAt(
       name: "ReentrancyGuard",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.ReentrancyGuard>;
+    getContractAt(
+      name: "AggregatorV3Interface",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.AggregatorV3Interface>;
     getContractAt(
       name: "IPredictionMarket",
       address: string | ethers.Addressable,
@@ -50,11 +63,20 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.PredictionMarket>;
+    getContractAt(
+      name: "MockAggregatorV3",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.MockAggregatorV3>;
 
     deployContract(
       name: "ReentrancyGuard",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ReentrancyGuard>;
+    deployContract(
+      name: "AggregatorV3Interface",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.AggregatorV3Interface>;
     deployContract(
       name: "IPredictionMarket",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -67,12 +89,21 @@ declare module "hardhat/types/runtime" {
       name: "PredictionMarket",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.PredictionMarket>;
+    deployContract(
+      name: "MockAggregatorV3",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.MockAggregatorV3>;
 
     deployContract(
       name: "ReentrancyGuard",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ReentrancyGuard>;
+    deployContract(
+      name: "AggregatorV3Interface",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.AggregatorV3Interface>;
     deployContract(
       name: "IPredictionMarket",
       args: any[],
@@ -88,6 +119,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.PredictionMarket>;
+    deployContract(
+      name: "MockAggregatorV3",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.MockAggregatorV3>;
 
     // default types
     getContractFactory(

@@ -2,5 +2,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as interfaces from "./interfaces";
+export * as test from "./test";
 export { OracleRegistry__factory } from "./OracleRegistry__factory";
 export { PredictionMarket__factory } from "./PredictionMarket__factory";

@@ -28,14 +28,17 @@ export interface PredictionMarketInterface extends Interface {
     nameOrSignature:
       | "DISPUTE_BOND"
       | "DISPUTE_WINDOW"
+      | "PRICE_STALENESS"
       | "PROPOSAL_BOND"
       | "VOTE_WINDOW"
+      | "autoResolve"
       | "claimDisputerBond"
       | "claimOracleReward"
       | "claimProposerBond"
       | "claimWinnings"
       | "claimed"
       | "createMarket"
+      | "createPriceMarket"
       | "disputeProposal"
       | "finalizeMarket"
       | "getVoters"
@@ -63,6 +66,7 @@ export interface PredictionMarketInterface extends Interface {
       | "MarketFinalized"
       | "OracleRewardClaimed"
       | "OracleVoted"
+      | "PriceMarketResolved"
       | "Proposed"
       | "ProposerBondClaimed"
       | "Staked"
@@ -77,12 +81,20 @@ export interface PredictionMarketInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "PRICE_STALENESS",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "PROPOSAL_BOND",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "VOTE_WINDOW",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "autoResolve",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "claimDisputerBond",
@@ -106,7 +118,18 @@ export interface PredictionMarketInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "createMarket",
-    values: [string, BigNumberish, BigNumberish]
+    values: [string, string, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "createPriceMarket",
+    values: [
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      AddressLike,
+      BigNumberish
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "disputeProposal",
@@ -179,11 +202,19 @@ export interface PredictionMarketInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "PRICE_STALENESS",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "PROPOSAL_BOND",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "VOTE_WINDOW",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "autoResolve",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -205,6 +236,10 @@ export interface PredictionMarketInterface extends Interface {
   decodeFunctionResult(functionFragment: "claimed", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "createMarket",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "createPriceMarket",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -313,19 +348,25 @@ export namespace MarketCreatedEvent {
     marketId: BigNumberish,
     creator: AddressLike,
     question: string,
-    tradingDeadline: BigNumberish
+    tradingDeadline: BigNumberish,
+    marketType: BigNumberish,
+    metadataCID: string
   ];
   export type OutputTuple = [
     marketId: bigint,
     creator: string,
     question: string,
-    tradingDeadline: bigint
+    tradingDeadline: bigint,
+    marketType: bigint,
+    metadataCID: string
   ];
   export interface OutputObject {
     marketId: bigint;
     creator: string;
     question: string;
     tradingDeadline: bigint;
+    marketType: bigint;
+    metadataCID: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -382,6 +423,34 @@ export namespace OracleVotedEvent {
     oracle: string;
     outcome: bigint;
     weight: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace PriceMarketResolvedEvent {
+  export type InputTuple = [
+    marketId: BigNumberish,
+    feed: AddressLike,
+    price: BigNumberish,
+    threshold: BigNumberish,
+    result: BigNumberish
+  ];
+  export type OutputTuple = [
+    marketId: bigint,
+    feed: string,
+    price: bigint,
+    threshold: bigint,
+    result: bigint
+  ];
+  export interface OutputObject {
+    marketId: bigint;
+    feed: string;
+    price: bigint;
+    threshold: bigint;
+    result: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -508,9 +577,17 @@ export interface PredictionMarket extends BaseContract {
 
   DISPUTE_WINDOW: TypedContractMethod<[], [bigint], "view">;
 
+  PRICE_STALENESS: TypedContractMethod<[], [bigint], "view">;
+
   PROPOSAL_BOND: TypedContractMethod<[], [bigint], "view">;
 
   VOTE_WINDOW: TypedContractMethod<[], [bigint], "view">;
+
+  autoResolve: TypedContractMethod<
+    [marketId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
   claimDisputerBond: TypedContractMethod<
     [marketId: BigNumberish],
@@ -545,8 +622,22 @@ export interface PredictionMarket extends BaseContract {
   createMarket: TypedContractMethod<
     [
       question: string,
+      metadataCID: string,
       tradingDeadline: BigNumberish,
       proposalDeadline: BigNumberish
+    ],
+    [bigint],
+    "payable"
+  >;
+
+  createPriceMarket: TypedContractMethod<
+    [
+      question: string,
+      metadataCID: string,
+      tradingDeadline: BigNumberish,
+      proposalDeadline: BigNumberish,
+      priceFeed: AddressLike,
+      priceThreshold: BigNumberish
     ],
     [bigint],
     "payable"
@@ -574,6 +665,8 @@ export interface PredictionMarket extends BaseContract {
       [
         string,
         string,
+        string,
+        bigint,
         bigint,
         bigint,
         bigint,
@@ -592,10 +685,13 @@ export interface PredictionMarket extends BaseContract {
         bigint,
         bigint,
         boolean,
-        boolean
+        boolean,
+        string,
+        bigint
       ] & {
         creator: string;
         question: string;
+        metadataCID: string;
         tradingDeadline: bigint;
         proposalDeadline: bigint;
         disputeDeadline: bigint;
@@ -604,6 +700,7 @@ export interface PredictionMarket extends BaseContract {
         totalNoStake: bigint;
         creatorBond: bigint;
         state: bigint;
+        marketType: bigint;
         proposedOutcome: bigint;
         result: bigint;
         proposer: string;
@@ -615,6 +712,8 @@ export interface PredictionMarket extends BaseContract {
         winningVoteWeight: bigint;
         proposerBondClaimed: boolean;
         disputerBondClaimed: boolean;
+        priceFeed: string;
+        priceThreshold: bigint;
       }
     ],
     "view"
@@ -681,11 +780,17 @@ export interface PredictionMarket extends BaseContract {
     nameOrSignature: "DISPUTE_WINDOW"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "PRICE_STALENESS"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
     nameOrSignature: "PROPOSAL_BOND"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "VOTE_WINDOW"
   ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "autoResolve"
+  ): TypedContractMethod<[marketId: BigNumberish], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "claimDisputerBond"
   ): TypedContractMethod<[marketId: BigNumberish], [void], "nonpayable">;
@@ -710,8 +815,23 @@ export interface PredictionMarket extends BaseContract {
   ): TypedContractMethod<
     [
       question: string,
+      metadataCID: string,
       tradingDeadline: BigNumberish,
       proposalDeadline: BigNumberish
+    ],
+    [bigint],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "createPriceMarket"
+  ): TypedContractMethod<
+    [
+      question: string,
+      metadataCID: string,
+      tradingDeadline: BigNumberish,
+      proposalDeadline: BigNumberish,
+      priceFeed: AddressLike,
+      priceThreshold: BigNumberish
     ],
     [bigint],
     "payable"
@@ -736,6 +856,8 @@ export interface PredictionMarket extends BaseContract {
       [
         string,
         string,
+        string,
+        bigint,
         bigint,
         bigint,
         bigint,
@@ -754,10 +876,13 @@ export interface PredictionMarket extends BaseContract {
         bigint,
         bigint,
         boolean,
-        boolean
+        boolean,
+        string,
+        bigint
       ] & {
         creator: string;
         question: string;
+        metadataCID: string;
         tradingDeadline: bigint;
         proposalDeadline: bigint;
         disputeDeadline: bigint;
@@ -766,6 +891,7 @@ export interface PredictionMarket extends BaseContract {
         totalNoStake: bigint;
         creatorBond: bigint;
         state: bigint;
+        marketType: bigint;
         proposedOutcome: bigint;
         result: bigint;
         proposer: string;
@@ -777,6 +903,8 @@ export interface PredictionMarket extends BaseContract {
         winningVoteWeight: bigint;
         proposerBondClaimed: boolean;
         disputerBondClaimed: boolean;
+        priceFeed: string;
+        priceThreshold: bigint;
       }
     ],
     "view"
@@ -893,6 +1021,13 @@ export interface PredictionMarket extends BaseContract {
     OracleVotedEvent.OutputObject
   >;
   getEvent(
+    key: "PriceMarketResolved"
+  ): TypedContractEvent<
+    PriceMarketResolvedEvent.InputTuple,
+    PriceMarketResolvedEvent.OutputTuple,
+    PriceMarketResolvedEvent.OutputObject
+  >;
+  getEvent(
     key: "Proposed"
   ): TypedContractEvent<
     ProposedEvent.InputTuple,
@@ -948,7 +1083,7 @@ export interface PredictionMarket extends BaseContract {
       DisputerBondClaimedEvent.OutputObject
     >;
 
-    "MarketCreated(uint256,address,string,uint256)": TypedContractEvent<
+    "MarketCreated(uint256,address,string,uint256,uint8,string)": TypedContractEvent<
       MarketCreatedEvent.InputTuple,
       MarketCreatedEvent.OutputTuple,
       MarketCreatedEvent.OutputObject
@@ -990,6 +1125,17 @@ export interface PredictionMarket extends BaseContract {
       OracleVotedEvent.InputTuple,
       OracleVotedEvent.OutputTuple,
       OracleVotedEvent.OutputObject
+    >;
+
+    "PriceMarketResolved(uint256,address,int256,int256,uint8)": TypedContractEvent<
+      PriceMarketResolvedEvent.InputTuple,
+      PriceMarketResolvedEvent.OutputTuple,
+      PriceMarketResolvedEvent.OutputObject
+    >;
+    PriceMarketResolved: TypedContractEvent<
+      PriceMarketResolvedEvent.InputTuple,
+      PriceMarketResolvedEvent.OutputTuple,
+      PriceMarketResolvedEvent.OutputObject
     >;
 
     "Proposed(uint256,address,uint8,uint256)": TypedContractEvent<

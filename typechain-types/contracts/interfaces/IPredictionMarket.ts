@@ -8,6 +8,7 @@ import type {
   FunctionFragment,
   Result,
   Interface,
+  AddressLike,
   ContractRunner,
   ContractMethod,
   Listener,
@@ -23,11 +24,13 @@ import type {
 export interface IPredictionMarketInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "autoResolve"
       | "claimDisputerBond"
       | "claimOracleReward"
       | "claimProposerBond"
       | "claimWinnings"
       | "createMarket"
+      | "createPriceMarket"
       | "disputeProposal"
       | "finalizeMarket"
       | "proposeOutcome"
@@ -36,6 +39,10 @@ export interface IPredictionMarketInterface extends Interface {
       | "voteOnDispute"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "autoResolve",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "claimDisputerBond",
     values: [BigNumberish]
@@ -54,7 +61,18 @@ export interface IPredictionMarketInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "createMarket",
-    values: [string, BigNumberish, BigNumberish]
+    values: [string, string, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "createPriceMarket",
+    values: [
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      AddressLike,
+      BigNumberish
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "disputeProposal",
@@ -82,6 +100,10 @@ export interface IPredictionMarketInterface extends Interface {
   ): string;
 
   decodeFunctionResult(
+    functionFragment: "autoResolve",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "claimDisputerBond",
     data: BytesLike
   ): Result;
@@ -99,6 +121,10 @@ export interface IPredictionMarketInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "createMarket",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "createPriceMarket",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -164,6 +190,12 @@ export interface IPredictionMarket extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  autoResolve: TypedContractMethod<
+    [marketId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
   claimDisputerBond: TypedContractMethod<
     [marketId: BigNumberish],
     [void],
@@ -191,8 +223,22 @@ export interface IPredictionMarket extends BaseContract {
   createMarket: TypedContractMethod<
     [
       question: string,
+      metadataCID: string,
       tradingDeadline: BigNumberish,
       proposalDeadline: BigNumberish
+    ],
+    [bigint],
+    "payable"
+  >;
+
+  createPriceMarket: TypedContractMethod<
+    [
+      question: string,
+      metadataCID: string,
+      tradingDeadline: BigNumberish,
+      proposalDeadline: BigNumberish,
+      priceFeed: AddressLike,
+      priceThreshold: BigNumberish
     ],
     [bigint],
     "payable"
@@ -231,6 +277,9 @@ export interface IPredictionMarket extends BaseContract {
   ): T;
 
   getFunction(
+    nameOrSignature: "autoResolve"
+  ): TypedContractMethod<[marketId: BigNumberish], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "claimDisputerBond"
   ): TypedContractMethod<[marketId: BigNumberish], [void], "nonpayable">;
   getFunction(
@@ -247,8 +296,23 @@ export interface IPredictionMarket extends BaseContract {
   ): TypedContractMethod<
     [
       question: string,
+      metadataCID: string,
       tradingDeadline: BigNumberish,
       proposalDeadline: BigNumberish
+    ],
+    [bigint],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "createPriceMarket"
+  ): TypedContractMethod<
+    [
+      question: string,
+      metadataCID: string,
+      tradingDeadline: BigNumberish,
+      proposalDeadline: BigNumberish,
+      priceFeed: AddressLike,
+      priceThreshold: BigNumberish
     ],
     [bigint],
     "payable"
