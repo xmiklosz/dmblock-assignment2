@@ -1,5 +1,5 @@
 {
-  "address": "0x3e33743DD0eAcda1526b6674beC2EDA53e0059B0",
+  "address": "0x1292954Db6A3Bd56C90547b5d285Bdc6E31F1bF7",
   "abi": [
     {
       "inputs": [
@@ -410,6 +410,30 @@
       "name": "autoResolve",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "checkData",
+          "type": "bytes"
+        }
+      ],
+      "name": "checkUpkeep",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "upkeepNeeded",
+          "type": "bool"
+        },
+        {
+          "internalType": "bytes",
+          "name": "performData",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -857,6 +881,19 @@
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "performData",
+          "type": "bytes"
+        }
+      ],
+      "name": "performUpkeep",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {

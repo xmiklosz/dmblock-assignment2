@@ -2,4 +2,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { AggregatorV3Interface } from "./AggregatorV3Interface";
+export type { AutomationCompatibleInterface } from "./AutomationCompatibleInterface";
 export type { IPredictionMarket } from "./IPredictionMarket";

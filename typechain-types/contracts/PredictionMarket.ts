@@ -32,6 +32,7 @@ export interface PredictionMarketInterface extends Interface {
       | "PROPOSAL_BOND"
       | "VOTE_WINDOW"
       | "autoResolve"
+      | "checkUpkeep"
       | "claimDisputerBond"
       | "claimOracleReward"
       | "claimProposerBond"
@@ -48,6 +49,7 @@ export interface PredictionMarketInterface extends Interface {
       | "oracleClaimed"
       | "oracleVote"
       | "oracleVoteWeight"
+      | "performUpkeep"
       | "proposeOutcome"
       | "registry"
       | "stakeNo"
@@ -95,6 +97,10 @@ export interface PredictionMarketInterface extends Interface {
   encodeFunctionData(
     functionFragment: "autoResolve",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "checkUpkeep",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "claimDisputerBond",
@@ -168,6 +174,10 @@ export interface PredictionMarketInterface extends Interface {
     values: [BigNumberish, AddressLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "performUpkeep",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "proposeOutcome",
     values: [BigNumberish, BigNumberish]
   ): string;
@@ -218,6 +228,10 @@ export interface PredictionMarketInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "checkUpkeep",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "claimDisputerBond",
     data: BytesLike
   ): Result;
@@ -264,6 +278,10 @@ export interface PredictionMarketInterface extends Interface {
   decodeFunctionResult(functionFragment: "oracleVote", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "oracleVoteWeight",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "performUpkeep",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -589,6 +607,12 @@ export interface PredictionMarket extends BaseContract {
     "nonpayable"
   >;
 
+  checkUpkeep: TypedContractMethod<
+    [checkData: BytesLike],
+    [[boolean, string] & { upkeepNeeded: boolean; performData: string }],
+    "view"
+  >;
+
   claimDisputerBond: TypedContractMethod<
     [marketId: BigNumberish],
     [void],
@@ -743,6 +767,12 @@ export interface PredictionMarket extends BaseContract {
     "view"
   >;
 
+  performUpkeep: TypedContractMethod<
+    [performData: BytesLike],
+    [void],
+    "nonpayable"
+  >;
+
   proposeOutcome: TypedContractMethod<
     [marketId: BigNumberish, outcome: BigNumberish],
     [void],
@@ -791,6 +821,13 @@ export interface PredictionMarket extends BaseContract {
   getFunction(
     nameOrSignature: "autoResolve"
   ): TypedContractMethod<[marketId: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "checkUpkeep"
+  ): TypedContractMethod<
+    [checkData: BytesLike],
+    [[boolean, string] & { upkeepNeeded: boolean; performData: string }],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "claimDisputerBond"
   ): TypedContractMethod<[marketId: BigNumberish], [void], "nonpayable">;
@@ -937,6 +974,9 @@ export interface PredictionMarket extends BaseContract {
     [bigint],
     "view"
   >;
+  getFunction(
+    nameOrSignature: "performUpkeep"
+  ): TypedContractMethod<[performData: BytesLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "proposeOutcome"
   ): TypedContractMethod<

@@ -10,6 +10,8 @@ export type { ReentrancyGuard } from "./@openzeppelin/contracts/utils/Reentrancy
 export { ReentrancyGuard__factory } from "./factories/@openzeppelin/contracts/utils/ReentrancyGuard__factory";
 export type { AggregatorV3Interface } from "./contracts/interfaces/AggregatorV3Interface";
 export { AggregatorV3Interface__factory } from "./factories/contracts/interfaces/AggregatorV3Interface__factory";
+export type { AutomationCompatibleInterface } from "./contracts/interfaces/AutomationCompatibleInterface";
+export { AutomationCompatibleInterface__factory } from "./factories/contracts/interfaces/AutomationCompatibleInterface__factory";
 export type { IPredictionMarket } from "./contracts/interfaces/IPredictionMarket";
 export { IPredictionMarket__factory } from "./factories/contracts/interfaces/IPredictionMarket__factory";
 export type { OracleRegistry } from "./contracts/OracleRegistry";

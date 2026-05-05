@@ -2,4 +2,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export { AggregatorV3Interface__factory } from "./AggregatorV3Interface__factory";
+export { AutomationCompatibleInterface__factory } from "./AutomationCompatibleInterface__factory";
 export { IPredictionMarket__factory } from "./IPredictionMarket__factory";

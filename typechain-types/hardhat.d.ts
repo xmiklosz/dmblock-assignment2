@@ -22,6 +22,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AggregatorV3Interface__factory>;
     getContractFactory(
+      name: "AutomationCompatibleInterface",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.AutomationCompatibleInterface__factory>;
+    getContractFactory(
       name: "IPredictionMarket",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IPredictionMarket__factory>;
@@ -49,6 +53,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.AggregatorV3Interface>;
     getContractAt(
+      name: "AutomationCompatibleInterface",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.AutomationCompatibleInterface>;
+    getContractAt(
       name: "IPredictionMarket",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -78,6 +87,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.AggregatorV3Interface>;
     deployContract(
+      name: "AutomationCompatibleInterface",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.AutomationCompatibleInterface>;
+    deployContract(
       name: "IPredictionMarket",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IPredictionMarket>;
@@ -104,6 +117,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.AggregatorV3Interface>;
+    deployContract(
+      name: "AutomationCompatibleInterface",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.AutomationCompatibleInterface>;
     deployContract(
       name: "IPredictionMarket",
       args: any[],
