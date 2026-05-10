@@ -1,7 +1,7 @@
 # OptiMarket — Optimistic Oracle + Chainlink Prediction Market dApp
 
 > **Course:** Digital Currencies and Blockchain (DMBLOCK) — Assignment 2  
-> **Team:** xmiklosz  
+> **Team:** xmiklosz, xtothr  
 > **Deadline:** 10 May 2026
 
 ---
